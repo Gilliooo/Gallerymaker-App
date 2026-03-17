@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GalleryMaker — Collage Layout Editor</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="gridy.css" />
+</head>
+<body>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="brand">GalleryMaker <sub>collage editor</sub></div>
+    <div class="topbar-right">
+      <button class="btn" id="resetBtn">Reset</button>
+      <button class="btn btn-primary" id="exportBtn">Export JPG</button>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+      <!-- Frame section -->
+      <div class="section">
+        <div class="section-label">Frame</div>
+        <div class="preset-group" id="presets">
+          <button class="preset-btn active" data-w="1080" data-h="1920">9:16</button>
+          <button class="preset-btn" data-w="1080" data-h="1080">1:1</button>
+          <button class="preset-btn" data-w="1080" data-h="1350">4:5</button>
+          <button class="preset-btn" data-w="1920" data-h="1080">16:9</button>
+        </div>
+        <div class="row">
+          <label>Background</label>
+          <div class="bg-picker" id="bgPicker">
+            <div class="bg-swatch active" data-color="#ffffff" style="background:#ffffff; border: 1.5px solid #ccc;"></div>
+            <div class="bg-swatch" data-color="#0a0a0a" style="background:#0a0a0a;"></div>
+            <div class="bg-swatch" data-color="#f5f0e8" style="background:#f5f0e8;"></div>
+            <div class="bg-swatch" data-color="#1c1a2e" style="background:#1c1a2e;"></div>
+            <div class="bg-swatch" data-color="#2b2016" style="background:#2b2016;"></div>
+            <div class="bg-swatch" data-color="#dce8e0" style="background:#dce8e0;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid section -->
+      <div class="section">
+        <div class="section-label">Grid</div>
+        <div class="row">
+          <label>Columns</label>
+          <div class="stepper">
+            <button class="step-btn" id="colMinus">−</button>
+            <span class="step-val" id="colCount">2</span>
+            <button class="step-btn" id="colPlus">+</button>
+          </div>
+        </div>
+        <div class="row">
+          <label>Rows</label>
+          <div class="stepper">
+            <button class="step-btn" id="rowMinus">−</button>
+            <span class="step-val" id="rowCount">3</span>
+            <button class="step-btn" id="rowPlus">+</button>
+          </div>
+        </div>
+        <div class="row">
+          <label>Gap</label>
+          <input type="range" min="0" max="80" value="6" id="gapSlider" step="1">
+          <span class="val" id="gapVal">6px</span>
+        </div>
+        <div class="row">
+          <label>Padding</label>
+          <input type="range" min="0" max="120" value="0" id="padSlider" step="1">
+          <span class="val" id="padVal">0px</span>
+        </div>
+      </div>
+
+      <!-- Slots list section -->
+      <div class="section" style="padding-bottom: 0;">
+        <div class="section-label">Slots</div>
+      </div>
+      <div class="slot-list" id="slotList"></div>
+      <button class="add-slot-btn" id="addSlotBtn">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+          <line x1="6.5" y1="0.5" x2="6.5" y2="12.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="0.5" y1="6.5" x2="12.5" y2="6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Add slot
+      </button>
+
+      <!-- Selected slot controls -->
+      <div id="selSection" class="section">
+        <div class="section-label" id="selLabel">Selected slot</div>
+
+        <div class="row">
+          <label>Col span</label>
+          <div class="stepper">
+            <button class="step-btn" id="csM">−</button>
+            <span class="step-val" id="csV">1</span>
+            <button class="step-btn" id="csP">+</button>
+          </div>
+        </div>
+        <div class="row">
+          <label>Row span</label>
+          <div class="stepper">
+            <button class="step-btn" id="rsM">−</button>
+            <span class="step-val" id="rsV">1</span>
+            <button class="step-btn" id="rsP">+</button>
+          </div>
+        </div>
+        <div class="row">
+          <label>Col start</label>
+          <div class="stepper">
+            <button class="step-btn" id="cstM">−</button>
+            <span class="step-val" id="cstV">1</span>
+            <button class="step-btn" id="cstP">+</button>
+          </div>
+        </div>
+        <div class="row">
+          <label>Row start</label>
+          <div class="stepper">
+            <button class="step-btn" id="rstM">−</button>
+            <span class="step-val" id="rstV">1</span>
+            <button class="step-btn" id="rstP">+</button>
+          </div>
+        </div>
+
+        <div class="row" id="fitRow" style="display:none;">
+          <label>Fit</label>
+          <div class="fit-group" style="flex:1;">
+            <button class="fit-btn active" data-fit="cover" id="fitCover">Cover</button>
+            <button class="fit-btn" data-fit="contain" id="fitContain">Contain</button>
+          </div>
+        </div>
+
+        <button class="upload-img-btn" id="uploadImgBtn">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M6.5 1v7M3.5 4l3-3 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M1 10.5h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          Upload image
+        </button>
+
+        <button class="upload-img-btn" id="clearImgBtn" style="margin-top:6px; display:none;">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <line x1="2" y1="2" x2="11" y2="11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            <line x1="11" y1="2" x2="2" y2="11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          Clear image
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Canvas -->
+    <div class="canvas-area" id="canvasArea">
+      <div id="frame"></div>
+    </div>
+  </div>
+
+  <input type="file" id="file-input" accept="image/*">
+
+  <script src="gridy.js"></script>
+</body>
+</html>
