@@ -368,6 +368,12 @@ document.getElementById('exportBtn').addEventListener('click', async function() 
   this.textContent = 'Export JPG';
 });
 
+/* ── Fullscreen preview ── */
+document.getElementById('fullscreenBtn').addEventListener('click', () => {
+  document.body.classList.toggle('preview-fullscreen');
+  renderAll();
+});
+
 /* ── Resize ── */
 window.addEventListener('resize', () => renderAll());
 
