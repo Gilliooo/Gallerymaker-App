@@ -382,6 +382,11 @@ input[type=range]::-moz-range-thumb {
 /* Fit row hidden by default; shown via JS */
 #fitRow { display: none; }
 
+/* Crop/zoom rows hidden by default; shown via JS when fit=cover and image present */
+#cropXRow,
+#cropYRow,
+#zoomRow { display: none; }
+
 /* Clear image button hidden by default; shown via JS */
 #clearImgBtn { margin-top: 6px; display: none; }
 

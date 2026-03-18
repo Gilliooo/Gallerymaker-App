@@ -8,11 +8,11 @@ let fileInputTarget = null;
 let SCALE = 0.28;
 
 let slots = [
-  { id:1, colStart:1, rowStart:1, colSpan:1, rowSpan:1, img:null, fit:'cover' },
-  { id:2, colStart:2, rowStart:1, colSpan:1, rowSpan:1, img:null, fit:'cover' },
-  { id:3, colStart:1, rowStart:2, colSpan:2, rowSpan:1, img:null, fit:'cover' },
-  { id:4, colStart:1, rowStart:3, colSpan:1, rowSpan:1, img:null, fit:'cover' },
-  { id:5, colStart:2, rowStart:3, colSpan:1, rowSpan:1, img:null, fit:'cover' },
+  { id:1, colStart:1, rowStart:1, colSpan:1, rowSpan:1, img:null, fit:'cover', posX:50, posY:50, zoom:100 },
+  { id:2, colStart:2, rowStart:1, colSpan:1, rowSpan:1, img:null, fit:'cover', posX:50, posY:50, zoom:100 },
+  { id:3, colStart:1, rowStart:2, colSpan:2, rowSpan:1, img:null, fit:'cover', posX:50, posY:50, zoom:100 },
+  { id:4, colStart:1, rowStart:3, colSpan:1, rowSpan:1, img:null, fit:'cover', posX:50, posY:50, zoom:100 },
+  { id:5, colStart:2, rowStart:3, colSpan:1, rowSpan:1, img:null, fit:'cover', posX:50, posY:50, zoom:100 },
 ];
 let nextId = 6;
 
@@ -56,7 +56,16 @@ function renderSlots() {
     if (s.img) {
       const img = document.createElement('img');
       img.src = s.img;
-      img.style.objectFit = s.fit || 'cover';
+      if (s.fit === 'contain') {
+        img.style.objectFit = 'contain';
+      } else {
+        const posX = s.posX ?? 50;
+        const posY = s.posY ?? 50;
+        img.style.objectFit = 'cover';
+        img.style.objectPosition = `${posX}% ${posY}%`;
+        img.style.transform = `scale(${(s.zoom ?? 100) / 100})`;
+        img.style.transformOrigin = `${posX}% ${posY}%`;
+      }
       cell.appendChild(img);
     } else {
       const ph = document.createElement('div');
@@ -126,6 +135,17 @@ function selectSlot(id) {
     fitRow.style.display = s.img ? 'flex' : 'none';
     document.getElementById('fitCover').classList.toggle('active', s.fit !== 'contain');
     document.getElementById('fitContain').classList.toggle('active', s.fit === 'contain');
+    // crop/zoom sliders (cover only)
+    const showCrop = s.img && s.fit !== 'contain';
+    document.getElementById('cropXRow').style.display = showCrop ? 'flex' : 'none';
+    document.getElementById('cropYRow').style.display = showCrop ? 'flex' : 'none';
+    document.getElementById('zoomRow').style.display = showCrop ? 'flex' : 'none';
+    document.getElementById('cropX').value = s.posX ?? 50;
+    document.getElementById('cropY').value = s.posY ?? 50;
+    document.getElementById('cropXVal').textContent = (s.posX ?? 50) + '%';
+    document.getElementById('cropYVal').textContent = (s.posY ?? 50) + '%';
+    document.getElementById('zoomSlider').value = s.zoom ?? 100;
+    document.getElementById('zoomVal').textContent = ((s.zoom ?? 100) / 100).toFixed(1) + '×';
     // clear btn
     document.getElementById('clearImgBtn').style.display = s.img ? 'flex' : 'none';
   } else {
@@ -228,6 +248,9 @@ document.getElementById('fitCover').addEventListener('click', () => {
   s.fit = 'cover';
   document.getElementById('fitCover').classList.add('active');
   document.getElementById('fitContain').classList.remove('active');
+  document.getElementById('cropXRow').style.display = 'flex';
+  document.getElementById('cropYRow').style.display = 'flex';
+  document.getElementById('zoomRow').style.display = 'flex';
   renderSlots();
 });
 document.getElementById('fitContain').addEventListener('click', () => {
@@ -236,12 +259,38 @@ document.getElementById('fitContain').addEventListener('click', () => {
   s.fit = 'contain';
   document.getElementById('fitContain').classList.add('active');
   document.getElementById('fitCover').classList.remove('active');
+  document.getElementById('cropXRow').style.display = 'none';
+  document.getElementById('cropYRow').style.display = 'none';
+  document.getElementById('zoomRow').style.display = 'none';
+  renderSlots();
+});
+
+/* ── Crop position sliders ── */
+document.getElementById('cropX').addEventListener('input', function() {
+  if (!selectedSlot) return;
+  const s = slots.find(x => x.id === selectedSlot);
+  s.posX = parseInt(this.value);
+  document.getElementById('cropXVal').textContent = s.posX + '%';
+  renderSlots();
+});
+document.getElementById('cropY').addEventListener('input', function() {
+  if (!selectedSlot) return;
+  const s = slots.find(x => x.id === selectedSlot);
+  s.posY = parseInt(this.value);
+  document.getElementById('cropYVal').textContent = s.posY + '%';
+  renderSlots();
+});
+document.getElementById('zoomSlider').addEventListener('input', function() {
+  if (!selectedSlot) return;
+  const s = slots.find(x => x.id === selectedSlot);
+  s.zoom = parseInt(this.value);
+  document.getElementById('zoomVal').textContent = (s.zoom / 100).toFixed(1) + '×';
   renderSlots();
 });
 
 /* ── Add slot ── */
 document.getElementById('addSlotBtn').addEventListener('click', () => {
-  slots.push({ id: nextId++, colStart: 1, rowStart: 1, colSpan: 1, rowSpan: 1, img: null, fit: 'cover' });
+  slots.push({ id: nextId++, colStart: 1, rowStart: 1, colSpan: 1, rowSpan: 1, img: null, fit: 'cover', posX: 50, posY: 50, zoom: 100 });
   renderAll();
 });
 
@@ -292,11 +341,11 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   frameW = 1080; frameH = 1920; bgColor = '#ffffff';
   selectedSlot = null;
   slots = [
-    { id:1, colStart:1, rowStart:1, colSpan:1, rowSpan:1, img:null, fit:'cover' },
-    { id:2, colStart:2, rowStart:1, colSpan:1, rowSpan:1, img:null, fit:'cover' },
-    { id:3, colStart:1, rowStart:2, colSpan:2, rowSpan:1, img:null, fit:'cover' },
-    { id:4, colStart:1, rowStart:3, colSpan:1, rowSpan:1, img:null, fit:'cover' },
-    { id:5, colStart:2, rowStart:3, colSpan:1, rowSpan:1, img:null, fit:'cover' },
+    { id:1, colStart:1, rowStart:1, colSpan:1, rowSpan:1, img:null, fit:'cover', posX:50, posY:50, zoom:100 },
+    { id:2, colStart:2, rowStart:1, colSpan:1, rowSpan:1, img:null, fit:'cover', posX:50, posY:50, zoom:100 },
+    { id:3, colStart:1, rowStart:2, colSpan:2, rowSpan:1, img:null, fit:'cover', posX:50, posY:50, zoom:100 },
+    { id:4, colStart:1, rowStart:3, colSpan:1, rowSpan:1, img:null, fit:'cover', posX:50, posY:50, zoom:100 },
+    { id:5, colStart:2, rowStart:3, colSpan:1, rowSpan:1, img:null, fit:'cover', posX:50, posY:50, zoom:100 },
   ];
   nextId = 6;
   document.getElementById('gapSlider').value = 6;
@@ -312,53 +361,58 @@ document.getElementById('resetBtn').addEventListener('click', () => {
 });
 
 /* ── Export JPG ── */
+function getCellRect(s) {
+  const trackW = (frameW - 2 * pad - Math.max(0, cols - 1) * gap) / cols;
+  const trackH = (frameH - 2 * pad - Math.max(0, rows - 1) * gap) / rows;
+  return {
+    x: pad + (s.colStart - 1) * (trackW + gap),
+    y: pad + (s.rowStart - 1) * (trackH + gap),
+    w: s.colSpan * trackW + (s.colSpan - 1) * gap,
+    h: s.rowSpan * trackH + (s.rowSpan - 1) * gap,
+  };
+}
+
 document.getElementById('exportBtn').addEventListener('click', async function() {
   this.disabled = true;
   this.textContent = 'Exporting…';
   try {
-    const exportFrame = document.createElement('div');
-    exportFrame.style.cssText = [
-      `width:${frameW}px`,
-      `height:${frameH}px`,
-      `background:${bgColor}`,
-      `display:grid`,
-      `grid-template-columns:repeat(${cols},1fr)`,
-      `grid-template-rows:repeat(${rows},1fr)`,
-      `gap:${gap}px`,
-      `padding:${pad}px`,
-      `overflow:hidden`,
-      `position:fixed`,
-      `left:-99999px`,
-      `top:0`,
-    ].join(';') + ';';
+    const canvas = document.createElement('canvas');
+    canvas.width = frameW;
+    canvas.height = frameH;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, frameW, frameH);
 
     for (const s of slots) {
-      const cell = document.createElement('div');
-      cell.style.cssText = [
-        `grid-column:${s.colStart}/span ${s.colSpan}`,
-        `grid-row:${s.rowStart}/span ${s.rowSpan}`,
-        `overflow:hidden`,
-        `background:#d8d4cc`,
-      ].join(';') + ';';
+      const { x, y, w, h } = getCellRect(s);
+      ctx.fillStyle = '#d8d4cc';
+      ctx.fillRect(x, y, w, h);
+
       if (s.img) {
-        const img = document.createElement('img');
+        const img = new Image();
         img.src = s.img;
-        img.style.cssText = `width:100%;height:100%;object-fit:${s.fit || 'cover'};display:block;`;
-        cell.appendChild(img);
+        await new Promise(res => { img.complete ? res() : (img.onload = res); });
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(x, y, w, h);
+        ctx.clip();
+
+        const iw = img.naturalWidth, ih = img.naturalHeight;
+        if (s.fit === 'contain') {
+          const scale = Math.min(w / iw, h / ih);
+          const dw = iw * scale, dh = ih * scale;
+          ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+        } else {
+          const scale = Math.max(w / iw, h / ih) * ((s.zoom ?? 100) / 100);
+          const dw = iw * scale, dh = ih * scale;
+          const px = (s.posX ?? 50) / 100, py = (s.posY ?? 50) / 100;
+          ctx.drawImage(img, x + (w - dw) * px, y + (h - dh) * py, dw, dh);
+        }
+        ctx.restore();
       }
-      exportFrame.appendChild(cell);
     }
-
-    document.body.appendChild(exportFrame);
-    await new Promise(r => setTimeout(r, 300));
-
-    const canvas = await html2canvas(exportFrame, {
-      width: frameW, height: frameH,
-      scale: 1, useCORS: true, logging: false,
-      backgroundColor: bgColor,
-    });
-
-    document.body.removeChild(exportFrame);
 
     const link = document.createElement('a');
     link.download = `gridy-${Date.now()}.jpg`;
