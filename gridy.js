@@ -273,13 +273,17 @@ document.getElementById('file-input').addEventListener('change', function() {
   this.value = '';
 });
 
-/* ── Deselect on canvas click ── */
-frame.addEventListener('click', () => {
+/* ── Deselect on canvas background click ── */
+function deselect() {
   selectedSlot = null;
   document.getElementById('selSection').style.display = 'none';
   renderSlots();
   renderSlotList();
+}
+document.getElementById('canvasArea').addEventListener('click', e => {
+  if (e.target === e.currentTarget) deselect();
 });
+frame.addEventListener('click', e => { e.stopPropagation(); });
 
 /* ── Reset ── */
 document.getElementById('resetBtn').addEventListener('click', () => {
