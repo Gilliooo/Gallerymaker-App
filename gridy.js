@@ -1,6 +1,6 @@
 /* ── State ── */
 const frame = document.getElementById('frame');
-let cols = 2, rows = 3, gap = 6, pad = 0;
+let cols = 2, rows = 3, gap = 0, pad = 0;
 let frameW = 1080, frameH = 1920;
 let bgColor = '#ffffff';
 let selectedSlot = null;
@@ -383,7 +383,7 @@ frame.addEventListener('click', e => { e.stopPropagation(); });
 /* ── Reset ── */
 document.getElementById('resetBtn').addEventListener('click', () => {
   if (!confirm('Reset all slots and settings?')) return;
-  cols = 2; rows = 3; gap = 6; pad = 0;
+  cols = 2; rows = 3; gap = 0; pad = 0;
   frameW = 1080; frameH = 1920; bgColor = '#ffffff';
   selectedSlot = null;
   slots = [
@@ -394,9 +394,9 @@ document.getElementById('resetBtn').addEventListener('click', () => {
     { id:5, colStart:2, rowStart:3, colSpan:1, rowSpan:1, img:null, fit:'cover', posX:50, posY:50, zoom:100 },
   ];
   nextId = 6;
-  document.getElementById('gapSlider').value = 6;
+  document.getElementById('gapSlider').value = 0;
   document.getElementById('padSlider').value = 0;
-  document.getElementById('gapVal').textContent = '6px';
+  document.getElementById('gapVal').textContent = '0px';
   document.getElementById('padVal').textContent = '0px';
   document.getElementById('colCount').textContent = 2;
   document.getElementById('rowCount').textContent = 3;
