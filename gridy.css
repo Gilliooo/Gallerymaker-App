@@ -365,12 +365,12 @@ input[type=range]::-moz-range-thumb {
   justify-content: center;
   gap: 5px;
 }
-.cell-placeholder svg { opacity: 0.25; }
+.cell-placeholder svg { opacity: 0.6; }
 .cell-placeholder span {
   font-size: 9px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #888;
+  /* color set dynamically via JS to contrast cell background */
 }
 
 /* Section modifier — no bottom padding (slots header) */

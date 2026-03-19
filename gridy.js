@@ -16,6 +16,48 @@ let slots = [
 ];
 let nextId = 6;
 
+/* ── Placeholder color helpers ── */
+function hexToHsl(hex) {
+  let r = parseInt(hex.slice(1,3),16)/255;
+  let g = parseInt(hex.slice(3,5),16)/255;
+  let b = parseInt(hex.slice(5,7),16)/255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b);
+  let h, s, l=(max+min)/2;
+  if (max===min) { h=s=0; } else {
+    const d=max-min;
+    s=l>0.5?d/(2-max-min):d/(max+min);
+    switch(max){
+      case r:h=((g-b)/d+(g<b?6:0))/6;break;
+      case g:h=((b-r)/d+2)/6;break;
+      case b:h=((r-g)/d+4)/6;break;
+    }
+  }
+  return [h*360, s*100, l*100];
+}
+function hslToHex(h,s,l) {
+  h/=360; s/=100; l/=100;
+  const hue2rgb=(p,q,t)=>{
+    if(t<0)t+=1; if(t>1)t-=1;
+    if(t<1/6)return p+(q-p)*6*t;
+    if(t<1/2)return q;
+    if(t<2/3)return p+(q-p)*(2/3-t)*6;
+    return p;
+  };
+  let r,g,b;
+  if(s===0){r=g=b=l;}else{
+    const q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q;
+    r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);
+  }
+  return '#'+[r,g,b].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');
+}
+function placeholderStyle(bg) {
+  const [h,s,l] = hexToHsl(bg);
+  const cellL = Math.min(100, l+20);
+  const cellBg = hslToHex(h, s, cellL);
+  const textColor = cellL > 55 ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.5)';
+  return { cellBg, textColor };
+}
+
 /* ── Scale based on viewport ── */
 function computeScale() {
   const canvasArea = document.getElementById('canvasArea');
@@ -68,13 +110,16 @@ function renderSlots() {
       }
       cell.appendChild(img);
     } else {
+      const { cellBg, textColor } = placeholderStyle(bgColor);
+      cell.style.background = cellBg;
       const ph = document.createElement('div');
       ph.className = 'cell-placeholder';
+      ph.style.color = textColor;
       ph.innerHTML = `
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-          <rect x="2" y="2" width="18" height="18" rx="2" stroke="#888" stroke-width="1"/>
-          <circle cx="8" cy="8" r="1.5" fill="#888"/>
-          <path d="M20 14l-5-5L5 20" stroke="#888" stroke-width="1" stroke-linecap="round"/>
+          <rect x="2" y="2" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1"/>
+          <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+          <path d="M20 14l-5-5L5 20" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
         </svg>
         <span>tap to add</span>`;
       ph.addEventListener('click', e => { e.stopPropagation(); selectSlot(s.id); triggerUpload(s.id); });
@@ -239,6 +284,7 @@ document.getElementById('bgPicker').addEventListener('click', e => {
   sw.classList.add('active');
   bgColor = sw.dataset.color;
   frame.style.background = bgColor;
+  renderSlots();
 });
 
 /* ── Fit toggle ── */
