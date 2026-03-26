@@ -3,7 +3,7 @@ const frame = document.getElementById('frame');
 let cols = 2, rows = 3, gap = 0, pad = 0;
 let frameW = 1080, frameH = 1920;
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-let bgColor = prefersDark ? '#0d1117' : '#ffffff';
+let bgColor = '#0a0a0a';
 let selectedSlot = null;
 let fileInputTarget = null;
 let SCALE = 0.28;
@@ -489,7 +489,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   if (!confirm('Reset all slots and settings?')) return;
   cols = 2; rows = 3; gap = 0; pad = 0;
   frameW = 1080; frameH = 1920;
-  bgColor = window.matchMedia('(prefers-color-scheme: dark)').matches ? '#0d1117' : '#ffffff';
+  bgColor = '#0a0a0a';
   selectedSlot = null;
   slots = [
     { id:1, colStart:1, rowStart:1, colSpan:1, rowSpan:1, img:null, fit:'cover', posX:50, posY:50, zoom:100 },
@@ -507,7 +507,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   document.getElementById('rowCount').textContent = 3;
   document.getElementById('selSection').style.display = 'none';
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active', b.dataset.w === '1080' && b.dataset.h === '1920'));
-  document.querySelectorAll('.bg-swatch').forEach((s,i) => s.classList.toggle('active', i===0));
+  document.querySelectorAll('.bg-swatch').forEach(s => s.classList.toggle('active', s.dataset.color === '#0a0a0a'));
   document.getElementById('bgCustom').style.background = '';
   cpHue = prefersDark ? 220 : 210; cpSat = prefersDark ? 0.45 : 0.35; cpVal = prefersDark ? 0.18 : 0.88;
   renderAll();
