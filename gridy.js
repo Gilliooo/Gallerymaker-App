@@ -2,7 +2,8 @@
 const frame = document.getElementById('frame');
 let cols = 2, rows = 3, gap = 0, pad = 0;
 let frameW = 1080, frameH = 1920;
-let bgColor = '#ffffff';
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+let bgColor = prefersDark ? '#0d1117' : '#ffffff';
 let selectedSlot = null;
 let fileInputTarget = null;
 let SCALE = 0.28;
@@ -287,14 +288,107 @@ document.getElementById('bgPicker').addEventListener('click', e => {
   renderSlots();
 });
 
-document.getElementById('bgCustomInput').addEventListener('input', function () {
-  const color = this.value;
-  document.getElementById('bgCustom').style.background = color;
+/* ── Custom Color Picker ── */
+let cpHue = prefersDark ? 220 : 210;
+let cpSat = prefersDark ? 0.45 : 0.35;
+let cpVal = prefersDark ? 0.18 : 0.88;
+let cpOpen = false;
+let cpDragging = false;
+
+function hsvToHex(h, s, v) {
+  const f = n => { const k = (n + h / 60) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)); };
+  return '#' + [f(5), f(3), f(1)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
+}
+function hexToHsv(hex) {
+  let r = parseInt(hex.slice(1,3),16)/255, g = parseInt(hex.slice(3,5),16)/255, b = parseInt(hex.slice(5,7),16)/255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b), d = max - min;
+  const v = max, s = max === 0 ? 0 : d / max;
+  let h = 0;
+  if (d) switch(max) {
+    case r: h = ((g - b) / d + (g < b ? 6 : 0)) * 60; break;
+    case g: h = ((b - r) / d + 2) * 60; break;
+    case b: h = ((r - g) / d + 4) * 60; break;
+  }
+  return [h, s, v];
+}
+function drawCpCanvas() {
+  const canvas = document.getElementById('cpCanvas');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.fillStyle = `hsl(${cpHue},100%,50%)`;
+  ctx.fillRect(0, 0, w, h);
+  const wg = ctx.createLinearGradient(0, 0, w, 0);
+  wg.addColorStop(0, 'rgba(255,255,255,1)');
+  wg.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = wg; ctx.fillRect(0, 0, w, h);
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, 'rgba(0,0,0,0)');
+  bg.addColorStop(1, 'rgba(0,0,0,1)');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+  const x = cpSat * w, y = (1 - cpVal) * h;
+  ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2);
+  ctx.strokeStyle = 'white'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(x, y, 6.5, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1; ctx.stroke();
+}
+function applyCpColor() {
+  const hex = hsvToHex(cpHue, cpSat, cpVal);
+  document.getElementById('cpHex').value = hex;
+  document.getElementById('cpPreview').style.background = hex;
+  document.getElementById('bgCustom').style.background = hex;
   document.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
   document.getElementById('bgCustom').classList.add('active');
-  bgColor = color;
-  frame.style.background = bgColor;
-  renderSlots();
+  bgColor = hex; frame.style.background = bgColor; renderSlots();
+}
+function openColorPicker() {
+  const popup = document.getElementById('colorPickerPopup');
+  const rect = document.getElementById('bgCustom').getBoundingClientRect();
+  popup.style.display = 'flex';
+  cpOpen = true;
+  requestAnimationFrame(() => {
+    const ph = popup.offsetHeight;
+    popup.style.left = rect.left + 'px';
+    popup.style.top = (window.innerHeight - rect.top > ph + 16 ? rect.bottom + 8 : rect.top - ph - 8) + 'px';
+  });
+  document.getElementById('cpHue').value = cpHue;
+  drawCpCanvas();
+  applyCpColor();
+}
+document.getElementById('bgCustom').addEventListener('click', e => {
+  e.stopPropagation();
+  cpOpen ? (document.getElementById('colorPickerPopup').style.display = 'none', cpOpen = false) : openColorPicker();
+});
+document.getElementById('colorPickerPopup').addEventListener('click', e => e.stopPropagation());
+document.addEventListener('click', () => {
+  if (cpOpen) { document.getElementById('colorPickerPopup').style.display = 'none'; cpOpen = false; }
+});
+function handleCpDrag(clientX, clientY) {
+  const rect = document.getElementById('cpCanvas').getBoundingClientRect();
+  cpSat = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  cpVal = Math.max(0, Math.min(1, 1 - (clientY - rect.top) / rect.height));
+  drawCpCanvas(); applyCpColor();
+}
+const cpCanvas = document.getElementById('cpCanvas');
+cpCanvas.addEventListener('mousedown', e => { cpDragging = true; handleCpDrag(e.clientX, e.clientY); });
+document.addEventListener('mousemove', e => { if (cpDragging) handleCpDrag(e.clientX, e.clientY); });
+document.addEventListener('mouseup', () => { cpDragging = false; });
+cpCanvas.addEventListener('touchstart', e => { cpDragging = true; handleCpDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+document.addEventListener('touchmove', e => { if (cpDragging) handleCpDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+document.addEventListener('touchend', () => { cpDragging = false; });
+document.getElementById('cpHue').addEventListener('input', function () {
+  cpHue = parseInt(this.value); drawCpCanvas(); applyCpColor();
+});
+document.getElementById('cpHex').addEventListener('input', function () {
+  if (/^#[0-9a-fA-F]{6}$/.test(this.value)) {
+    [cpHue, cpSat, cpVal] = hexToHsv(this.value);
+    document.getElementById('cpHue').value = cpHue;
+    drawCpCanvas();
+    document.getElementById('cpPreview').style.background = this.value;
+    document.getElementById('bgCustom').style.background = this.value;
+    document.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
+    document.getElementById('bgCustom').classList.add('active');
+    bgColor = this.value; frame.style.background = bgColor; renderSlots();
+  }
 });
 
 /* ── Fit toggle ── */
@@ -394,7 +488,8 @@ frame.addEventListener('click', e => { e.stopPropagation(); });
 document.getElementById('resetBtn').addEventListener('click', () => {
   if (!confirm('Reset all slots and settings?')) return;
   cols = 2; rows = 3; gap = 0; pad = 0;
-  frameW = 1080; frameH = 1920; bgColor = '#ffffff';
+  frameW = 1080; frameH = 1920;
+  bgColor = window.matchMedia('(prefers-color-scheme: dark)').matches ? '#0d1117' : '#ffffff';
   selectedSlot = null;
   slots = [
     { id:1, colStart:1, rowStart:1, colSpan:1, rowSpan:1, img:null, fit:'cover', posX:50, posY:50, zoom:100 },
@@ -414,6 +509,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active', b.dataset.w === '1080' && b.dataset.h === '1920'));
   document.querySelectorAll('.bg-swatch').forEach((s,i) => s.classList.toggle('active', i===0));
   document.getElementById('bgCustom').style.background = '';
+  cpHue = prefersDark ? 220 : 210; cpSat = prefersDark ? 0.45 : 0.35; cpVal = prefersDark ? 0.18 : 0.88;
   renderAll();
 });
 

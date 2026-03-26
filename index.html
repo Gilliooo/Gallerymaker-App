@@ -40,9 +40,7 @@
             <div class="bg-swatch" data-color="#1c1a2e"></div>
             <div class="bg-swatch" data-color="#2b2016"></div>
             <div class="bg-swatch" data-color="#dce8e0"></div>
-            <div class="bg-swatch bg-swatch--custom" id="bgCustom" title="Custom color">
-              <input type="color" id="bgCustomInput" value="#ff0000">
-            </div>
+            <div class="bg-swatch bg-swatch--custom" id="bgCustom" title="Custom color"></div>
           </div>
         </div>
       </div>
@@ -186,6 +184,15 @@
   </div>
 
   <input type="file" id="file-input" accept="image/*">
+
+  <div id="colorPickerPopup" class="color-picker-popup">
+    <canvas id="cpCanvas" width="156" height="116"></canvas>
+    <input type="range" id="cpHue" class="cp-hue" min="0" max="359" value="0">
+    <div class="cp-bottom">
+      <div class="cp-preview" id="cpPreview"></div>
+      <input type="text" id="cpHex" class="cp-hex-input" maxlength="7" spellcheck="false">
+    </div>
+  </div>
 
   <script src="gridy.js"></script>
 </body>
