@@ -279,10 +279,20 @@ document.getElementById('presets').addEventListener('click', e => {
 /* ── Background color ── */
 document.getElementById('bgPicker').addEventListener('click', e => {
   const sw = e.target.closest('.bg-swatch');
-  if (!sw) return;
+  if (!sw || sw.classList.contains('bg-swatch--custom')) return;
   document.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
   sw.classList.add('active');
   bgColor = sw.dataset.color;
+  frame.style.background = bgColor;
+  renderSlots();
+});
+
+document.getElementById('bgCustomInput').addEventListener('input', function () {
+  const color = this.value;
+  document.getElementById('bgCustom').style.background = color;
+  document.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
+  document.getElementById('bgCustom').classList.add('active');
+  bgColor = color;
   frame.style.background = bgColor;
   renderSlots();
 });
@@ -403,6 +413,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   document.getElementById('selSection').style.display = 'none';
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active', b.dataset.w === '1080' && b.dataset.h === '1920'));
   document.querySelectorAll('.bg-swatch').forEach((s,i) => s.classList.toggle('active', i===0));
+  document.getElementById('bgCustom').style.background = '';
   renderAll();
 });
 
