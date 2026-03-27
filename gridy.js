@@ -53,7 +53,7 @@ function hslToHex(h,s,l) {
 }
 function placeholderStyle(bg) {
   const [h,s,l] = hexToHsl(bg);
-  const cellL = Math.min(100, l+20);
+  const cellL = Math.min(100, l+5);
   const cellBg = hslToHex(h, s, cellL);
   const textColor = cellL > 55 ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.5)';
   return { cellBg, textColor };

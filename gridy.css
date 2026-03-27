@@ -144,7 +144,7 @@ body {
 .row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  /* gap: 5px; */
   margin-bottom: 10px;
 }
 .row:last-child { margin-bottom: 0; }
