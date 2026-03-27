@@ -95,6 +95,10 @@ function renderSlots() {
     cell.className = 'cell' + (selectedSlot === s.id ? ' selected' : '');
     cell.style.gridColumn = `${s.colStart} / span ${s.colSpan}`;
     cell.style.gridRow = `${s.rowStart} / span ${s.rowSpan}`;
+    if (selectedSlot === s.id) {
+      const [,,l] = hexToHsl(bgColor);
+      cell.style.boxShadow = `inset 0 0 0 2px ${l > 50 ? '#111110' : '#ffffff'}`;
+    }
 
     if (s.img) {
       const img = document.createElement('img');
