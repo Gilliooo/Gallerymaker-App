@@ -455,7 +455,6 @@ input[type=range]::-moz-range-thumb {
 .cell {
   overflow: hidden;
   cursor: pointer;
-  background: #e8e4dc;
   position: relative;
   transition: box-shadow 0.12s;
 }

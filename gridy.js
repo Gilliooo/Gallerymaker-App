@@ -105,6 +105,7 @@ function renderSlots() {
       img.src = s.img;
       if (s.fit === 'contain') {
         img.style.objectFit = 'contain';
+        cell.style.background = bgColor;
       } else {
         const posX = s.posX ?? 50;
         const posY = s.posY ?? 50;
@@ -131,7 +132,11 @@ function renderSlots() {
       cell.appendChild(ph);
     }
 
-    cell.addEventListener('click', e => { e.stopPropagation(); selectSlot(s.id); });
+    cell.addEventListener('click', e => {
+      e.stopPropagation();
+      if (selectedSlot === s.id && s.img) triggerUpload(s.id);
+      else selectSlot(s.id);
+    });
     frame.appendChild(cell);
   });
 }
@@ -543,7 +548,7 @@ document.getElementById('exportBtn').addEventListener('click', async function() 
 
     for (const s of slots) {
       const { x, y, w, h } = getCellRect(s);
-      ctx.fillStyle = '#d8d4cc';
+      ctx.fillStyle = bgColor;
       ctx.fillRect(x, y, w, h);
 
       if (s.img) {
